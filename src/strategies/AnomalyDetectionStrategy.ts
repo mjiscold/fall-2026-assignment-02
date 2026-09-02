@@ -7,6 +7,7 @@ export class AnomalyDetectionStrategy implements AuditStrategy {
   public readonly description =
     'Detects transactions exceeding thresholds and duplicate records';
 
+    
   public async execute(
     transactions: Transaction[],
     customParam?: string,
