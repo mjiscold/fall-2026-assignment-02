@@ -1,16 +1,12 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { TaxDeductionStrategy } from '../src/strategies/TaxDeductionStrategy.js';
 import { TaxConfigService } from '../src/services/TaxConfigService.js';
-import { Transaction } from '../src/models.js';
-
 describe('TaxDeductionStrategy (Feature 4)', () => {
-  let strategy: TaxDeductionStrategy;
-
+  let strategy;
   beforeEach(() => {
     strategy = new TaxDeductionStrategy();
     vi.restoreAllMocks();
   });
-
   // Example of how to write and mock in your tests:
   //
   // it('should compute tax savings correctly based on rate and deductible categories', async () => {
@@ -28,14 +24,12 @@ describe('TaxDeductionStrategy (Feature 4)', () => {
   //   expect(result).toContain('Deductions: $200.00'); // Sum of Charity
   //   expect(result).toContain('Savings: $20.00'); // $200 * 0.10
   // });
-
   it('should filter only the categories specified as deductible in the config', async () => {
     vi.spyOn(TaxConfigService, 'getTaxConfig').mockResolvedValue({
       standardTaxRate: 0.1,
       deductibleCategories: ['Charity'],
     });
-
-    const testTransactions: Transaction[] = [
+    const testTransactions = [
       {
         id: '1',
         date: '2026-01-31',
@@ -53,20 +47,16 @@ describe('TaxDeductionStrategy (Feature 4)', () => {
         status: 'completed',
       },
     ];
-
     const result = await strategy.execute(testTransactions);
-
     expect(result).toContain('Red Cross');
     expect(result).not.toContain('Grocery');
   });
-
   it('should sum total eligible tax deductions correctly', async () => {
     vi.spyOn(TaxConfigService, 'getTaxConfig').mockResolvedValue({
       standardTaxRate: 0.1,
       deductibleCategories: ['Medical', 'Charity'],
     });
-
-    const testTransactions: Transaction[] = [
+    const testTransactions = [
       {
         id: '1',
         date: '2026-01-31',
@@ -92,19 +82,15 @@ describe('TaxDeductionStrategy (Feature 4)', () => {
         status: 'completed',
       },
     ];
-
     const result = await strategy.execute(testTransactions);
-
     expect(result).toContain('Total Deductions: $200.00');
   });
-
   it('should calculate estimated tax savings using standardTaxRate', async () => {
     vi.spyOn(TaxConfigService, 'getTaxConfig').mockResolvedValue({
       standardTaxRate: 0.2,
       deductibleCategories: ['Business'],
     });
-
-    const testTransactions: Transaction[] = [
+    const testTransactions = [
       {
         id: '1',
         date: '2026-01-31',
@@ -114,19 +100,15 @@ describe('TaxDeductionStrategy (Feature 4)', () => {
         status: 'completed',
       },
     ];
-
     const result = await strategy.execute(testTransactions);
-
     expect(result).toContain('Estimated Tax Savings: $80.00');
   });
-
   it('should calculate estimated VAT/sales tax paid on non-deductible expense transactions', async () => {
     vi.spyOn(TaxConfigService, 'getTaxConfig').mockResolvedValue({
       standardTaxRate: 0.05,
       deductibleCategories: ['Charity'],
     });
-
-    const testTransactions: Transaction[] = [
+    const testTransactions = [
       {
         id: '1',
         date: '2026-01-31',
@@ -144,19 +126,15 @@ describe('TaxDeductionStrategy (Feature 4)', () => {
         status: 'completed',
       },
     ];
-
     const result = await strategy.execute(testTransactions);
-
     expect(result).toContain('Estimated VAT on Non-Deductibles: $15.00');
   });
-
   it('should structure report to show both aggregates and itemized deductible transactions', async () => {
     vi.spyOn(TaxConfigService, 'getTaxConfig').mockResolvedValue({
       standardTaxRate: 0.1,
       deductibleCategories: ['Charity'],
     });
-
-    const testTransactions: Transaction[] = [
+    const testTransactions = [
       {
         id: '1',
         date: '2026-01-31',
@@ -166,9 +144,7 @@ describe('TaxDeductionStrategy (Feature 4)', () => {
         status: 'completed',
       },
     ];
-
     const result = await strategy.execute(testTransactions);
-
     expect(result).toContain('Total Deductions: $100.00');
     expect(result).toContain('Eligible Transactions:\n');
     expect(result).toContain('- 2026-01-31 | Donation | Charity | $100.00');
