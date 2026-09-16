@@ -13,13 +13,6 @@ export class TaxDeductionStrategy implements AuditStrategy {
   ): Promise<string> {
     // TODO: Feature 4 - Implement this strategy.
     // 1. Call TaxConfigService.getTaxConfig() asynchronously.
-    const taxConfig = await TaxConfigService.getTaxConfig();
-    const { standardTaxRate, deductibleCategories } = taxConfig;
-
-    let totalDeductible = 0;
-    let totalNonDeductible = 0;
-    const eligibleTransactions: Transaction[] = [];
-
     // 2. Filter expenses (amount < 0) that belong to eligible tax-deductible categories.
     for (const tx of transactions) {
       if (tx.amount < 0) {
@@ -56,6 +49,6 @@ export class TaxDeductionStrategy implements AuditStrategy {
       });
     }
 
-    return report;
+    throw new Error('Method not implemented.');
   }
 }
