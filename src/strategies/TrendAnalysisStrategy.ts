@@ -11,14 +11,93 @@ export class TrendAnalysisStrategy implements AuditStrategy {
     transactions: Transaction[],
     customParam?: string,
   ): Promise<string> {
-    // TODO: Feature 3 - Implement this strategy.
-    // 1. Call HistoricalDataService.getHistoricalAverages() asynchronously.
-    // 2. Group current expenses (amount < 0) by category and compute category totals.
-    // 3. For each category, compare current total spending against the historical average.
-    // 4. Calculate the rate of change / variance percentage: ((current - historical) / historical) * 100.
-    // 5. Highlight any category with a variance exceeding +/- 20%.
-    // 6. Format and return a text-based audit report detailing comparison metrics.
 
-    throw new Error('Method not implemented.');
+    // 1. Get historical averages
+    const historicalAverages =
+      await HistoricalDataService.getHistoricalAverages();
+
+    // 2. Group current expenses by category
+    const currentSpending: Record<string, number> = {};
+
+    for (const transaction of transactions) {
+      if (transaction.amount < 0) {
+        const category = transaction.category;
+
+        if (currentSpending[category] === undefined) {
+          currentSpending[category] = 0;
+        }
+
+        currentSpending[category] += Math.abs(transaction.amount);
+      }
+    }
+
+    // Arrays used to build the report
+    const table: string[] = [];
+    const growthCategories: string[] = [];
+    const savingsCategories: string[] = [];
+
+    table.push(
+      'Category | Current Spending | Historical Average | % Change',
+    );
+
+    table.push(
+      '-------------------------------------------------------------',
+    );
+
+    // 3. Compare current spending to historical averages
+    for (const [category, historical] of Object.entries(
+      historicalAverages,
+    )) {
+      const current = currentSpending[category] ?? 0;
+
+      // 4. Calculate variance percentage
+      const variance =
+        ((current - historical) / historical) * 100;
+
+      table.push(
+        `${category} | $${current.toFixed(2)} | $${historical.toFixed(2)} | ${variance.toFixed(2)}%`,
+      );
+
+      // 5. Highlight changes greater than +/- 20%
+      if (variance > 20) {
+        growthCategories.push(
+          `${category}: ${variance.toFixed(2)}%`,
+        );
+      }
+
+      if (variance < -20) {
+        savingsCategories.push(
+          `${category}: ${variance.toFixed(2)}%`,
+        );
+      }
+    }
+    for (const [category, current] of Object.entries(currentSpending)) {
+  if (historicalAverages[category] === undefined) {
+    table.push(
+      `${category} | $${current.toFixed(2)} | N/A | N/A`,
+    );
+  }
+}
+
+    // 6. Create the final report
+    let report = table.join('\n');
+
+    report += '\n\nSignificant Growth Categories\n';
+
+    if (growthCategories.length > 0) {
+      report += growthCategories.join('\n');
+    } else {
+      report += 'None';
+    }
+
+    report += '\n\nSignificant Savings Categories\n';
+
+    if (savingsCategories.length > 0) {
+      report += savingsCategories.join('\n');
+    } else {
+      report += 'None';
+    }
+
+    return report;
   }
 }
